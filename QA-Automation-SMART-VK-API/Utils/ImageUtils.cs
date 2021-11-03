@@ -1,9 +1,28 @@
 ﻿using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
+using System.Net;
 
 namespace QA_Automation_SMART_VK_API.Utils
 {
     public static class ImageUtils
     {
+        public static void DownloadImage(string address, string path)
+        {
+            using (WebClient webClient = new WebClient())
+            {
+                byte[] data = webClient.DownloadData(address);
+
+                using (MemoryStream mem = new MemoryStream(data))
+                {
+                    using (var yourImage = Image.FromStream(mem))
+                    {
+                        yourImage.Save(path, ImageFormat.Jpeg);
+                    }
+                }
+            }
+        }
+
         public static bool CompareImages(string pathToImage1, string pathToImage2)
         {            
             string img1_ref, img2_ref;

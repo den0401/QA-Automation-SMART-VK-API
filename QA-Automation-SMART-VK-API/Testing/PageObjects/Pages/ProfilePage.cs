@@ -1,11 +1,7 @@
-﻿using Aquality.Selenium.Browsers;
-using Aquality.Selenium.Elements.Interfaces;
+﻿using Aquality.Selenium.Elements.Interfaces;
 using Aquality.Selenium.Forms;
 using OpenQA.Selenium;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
-using System.Net;
 using QA_Automation_SMART_VK_API.Utils;
 
 namespace QA_Automation_SMART_VK_API.Testing.PageObjects.Pages
@@ -23,9 +19,15 @@ namespace QA_Automation_SMART_VK_API.Testing.PageObjects.Pages
                 $"#post{userId}_{commentId}"), $"{userId} comment");
         private ILabel PostAuthor => ElementFactory.GetLabel(
             By.XPath("//*[contains(@class,'post_author')]"), "Author of post");
+        private ILink ShowNextComment() => ElementFactory.GetLink(
+            By.XPath($"//span[@class='js-replies_next_label']"), "Wall post");
 
         private ILabel DownloadImage => ElementFactory.GetLabel(By.TagName("img"),
            "Image to download");
+        private ILink WallPhoto(int userId, int photoId) => ElementFactory.GetLink(
+            By.XPath($"//a[@href='/photo{userId}_{photoId}']"), "Wall photo");
+        private IButton CloseWallPhotoBtn => ElementFactory.GetButton(
+            By.ClassName("pv_close_btn"), "Close button");
 
         public ProfilePage() : base(By.Id("profile_wall"), "Profile wall")
         { }
@@ -45,27 +47,26 @@ namespace QA_Automation_SMART_VK_API.Testing.PageObjects.Pages
         public string GetPostText(int userId, int postId) => Post(userId, postId,
             "Post").FindChildElement<ILabel>(By.ClassName("wall_post_text"), "Post's text").Text;
 
-        public int GetCommentAuthorId(int userId, int commentedPostId, int commentId)
+        public void ShowComment() => ShowNextComment().Click();
+
+        private int GetAuthorId(ILabel post)
         {
-            string href = Comment(userId, commentedPostId, commentId).FindChildElement<ILink>(
+            string href = post.FindChildElement<ILink>(
                 By.CssSelector("a.author"), "Comment author link").Href;
 
             return int.Parse(href[(href.LastIndexOf("/id") + "/id".Length)..]);
         }
 
-        public int GetPostAuthorId(int userId, int postId)
-        {
-            string href = PostAuthor.FindChildElement<ILink>(
-                By.CssSelector("a.author"), "Comment author link").Href;
+        public int GetCommentAuthorId(int userId, int commentedPostId, int commentId) =>
+            GetAuthorId(Comment(userId, commentedPostId, commentId));
 
-            return int.Parse(href[(href.LastIndexOf("/id") + "/id".Length)..]);
-        }
+        public int GetPostAuthorId() => GetAuthorId(PostAuthor);
 
         public string GetTextOfComment(int userId, int commentedPostId, int commentId) =>
             Comment(userId, commentedPostId, commentId).FindChildElement<ILabel>(
                 By.ClassName("wall_reply_text"), "Comment's text").Text;
 
-        public bool isUploadedPhotoDisplayed(int userId, int postId) =>
+        public bool IsUploadedPhotoDisplayed(int userId, int postId) =>
             Post(userId, postId, "Post").FindChildElement<ILink>(By.CssSelector("a[href*='photo']"),
                 "Post image link").State.IsDisplayed;
 
@@ -75,24 +76,11 @@ namespace QA_Automation_SMART_VK_API.Testing.PageObjects.Pages
 
             string path = Directory.GetCurrentDirectory() + @$"\{fileName}.jpg";
 
-            AqualityServices.Browser.GoTo(ConfigAndDataUtils.GetConfigProperties("vk_url") +
-                "photo" + ownerId + "_" + $"{photoId}");
+            WallPhoto(ownerId, photoId).ClickAndWait();
 
-            using (WebClient webClient = new WebClient())
-            {
-                byte[] data = webClient.DownloadData(DownloadImage.GetAttribute("src"));
+            ImageUtils.DownloadImage(DownloadImage.GetAttribute("src"), path);
 
-                using (MemoryStream mem = new MemoryStream(data))
-                {
-                    using (var yourImage = Image.FromStream(mem))
-                    {
-                        yourImage.Save(path, ImageFormat.Jpeg);
-                    }
-                }
-            }
-
-            AqualityServices.Browser.GoTo(ConfigAndDataUtils.GetConfigProperties("vk_url") +
-                $"id{ownerId}");
+            CloseWallPhotoBtn.ClickAndWait();
 
             return path;
         }

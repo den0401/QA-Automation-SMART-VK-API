@@ -30,7 +30,7 @@ namespace QA_Automation_SMART_VK_API.Testing.Tests
 
             Logger.Instance.Info("Step 5 - Without refreshing the page, check that a post with the " +
                 "desired text from the correct user has appeared on the wall");
-            Assert.True(_profilePage.IsPostDisplayed(_profilePage.GetPostAuthorId(userId, post.Response.Id),
+            Assert.True(_profilePage.IsPostDisplayed(_profilePage.GetPostAuthorId(),
                 post.Response.Id), "Post isn't displayed");
             Assert.AreEqual(randomMessage, _profilePage.GetPostText(userId, post.Response.Id),
                 "Text of post isn't equal");
@@ -46,16 +46,17 @@ namespace QA_Automation_SMART_VK_API.Testing.Tests
                 "and the uploaded picture has been added");
             Assert.AreEqual(randomMessage, _profilePage.GetPostText(userId, post.Response.Id),
                 "Edited text of post isn't equal");
-            Assert.IsTrue(_profilePage.isUploadedPhotoDisplayed(userId, post.Response.Id),
+            Assert.IsTrue(_profilePage.IsUploadedPhotoDisplayed(userId, post.Response.Id),
                 "Uploaded picture has not been added");
             string pathToSavedImage = _profilePage.SavePhoto(photoId, "downloadImage", userId);
             Assert.IsTrue(ImageUtils.CompareImages(ConfigAndDataUtils.GetDataProperty("pathToPhoto"),
                 pathToSavedImage), "Images aren't equal");
 
-            var commentMessage = RandomValues.MakeRandomString(15);
+            var commentMessage = RandomValues.MakeRandomString(15);           
 
             Logger.Instance.Info("Step 8 - Adding a comment to a post with random text (using an API request)");
             var comment = ApplicationRequest.AddCommentToPost(userId, post.Response.Id, commentMessage);
+            _profilePage.ShowComment();
 
             Logger.Instance.Info("Step 9 - Without refreshing the page, check that a comment from the correct " +
                 "user has been added to the desired post");
