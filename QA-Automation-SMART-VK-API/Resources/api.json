@@ -1,0 +1,11 @@
+﻿{
+  "api_url": "https://api.vk.com/",
+  "api_version": "5.131",
+  "likes_isLiked": "method/likes.isLiked?",
+  "wall_create_comment": "method/wall.createComment?",
+  "wall_delete": "method/wall.delete?",
+  "wall_edit": "method/wall.edit?",
+  "wall_post": "method/wall.post?",
+  "wall_savePhoto": "method/photos.saveWallPhoto?",
+  "wall_upload": "method/photos.getWallUploadServer?"
+}
